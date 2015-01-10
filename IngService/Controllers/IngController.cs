@@ -125,7 +125,17 @@ namespace IngService.Controllers
                     bool blIsLucky = childNode.SelectSingleNode("//img[@class='ing_icon_lucky']") != null;
                     string strAvatarUri = childNode.SelectSingleNode("//div[@class='feed_avatar']/a/img").Attributes["src"].Value;
                     string strUserId = strAvatarUri.Remove(0, "http://pic.cnitblog.com/face/".Length);
-                    strUserId = strUserId.Substring(0, strUserId.IndexOf("/"));
+                    if (strUserId.IndexOf("sample_face.gif") == -1)
+                    {
+                        strUserId = strUserId.Substring(0, strUserId.IndexOf("/"));
+                    }
+                    else
+                    {
+                        strUserId = childNode.SelectSingleNode("//div[@class='feed_avatar']/a").Attributes["href"].Value;
+                        strUserId = strUserId.Remove(0, "/u/".Length);
+                        strUserId = strUserId.Remove(strUserId.Length - 1);
+                    }
+
                     string strUserName = childNode.SelectSingleNode("//a[@class='ing-author']").Attributes["href"].Value;
                     strUserName = strUserName.Remove(0, "/u/".Length);
                     strUserName = strUserName.Remove(strUserName.Length - 1);
