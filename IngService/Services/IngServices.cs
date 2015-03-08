@@ -74,14 +74,38 @@ namespace IngService.Services
 
         public static List<Ing> GetIngs(string html)
         {
+            List<Ing> ings = new List<Ing>();
+            List<MyIng> myIngs = GetMyIngs(html);
+            foreach (var myIng in myIngs)
+            {
+                Ing ing = new Ing()
+                {
+                    Id = myIng.Id,
+                    Body = myIng.Body,
+                    PublishTime = myIng.PublishTime,
+                    IsFromePhone = myIng.IsFromePhone,
+                    IsNewbie = myIng.IsNewbie,
+                    IsLucky = myIng.IsLucky,
+                    UserAvatarUri = myIng.UserAvatarUri,
+                    UserId = myIng.UserId,
+                    UserName = myIng.UserName,
+                    UserNickName = myIng.UserNickName
+                };
+                ings.Add(ing);
+            }
+            return ings;
+        }
+
+        public static List<MyIng> GetMyIngs(string html)
+        {
             if (string.IsNullOrEmpty(html))
             {
-                return new List<Ing>();
+                return new List<MyIng>();
             }
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
             var nodeIngs = doc.DocumentNode.SelectNodes("/li");
-            List<Ing> ings = new List<Ing>(nodeIngs.Count);
+            List<MyIng> ings = new List<MyIng>(nodeIngs.Count);
 
             foreach (HtmlNode node in nodeIngs)
             {
@@ -108,13 +132,17 @@ namespace IngService.Services
                     strUserName = strUserName.Remove(strUserName.Length - 1);
                     string strUserId = GetUserIdByUri(strUserName, strAvatarUri);
                     string strUserNickName = childNode.SelectSingleNode("//a[@class='ing-author']").InnerText;
-                    Ing ing = new Ing()
+                    //isPrivate 是否私有闪存
+                    bool isPrivate = childNode.SelectSingleNode("//img[@title='私有闪存']") != null;
+
+                    MyIng ing = new MyIng()
                     {
                         Id = strIngId,
                         Body = strIngBody,
                         PublishTime = strIngTime,
                         IsFromePhone = blIsFromePhone,
                         IsNewbie = blIsNewbie,
+                        IsPrivate = isPrivate,
                         IsLucky = blIsLucky,
                         UserAvatarUri = strAvatarUri,
                         UserId = strUserId,

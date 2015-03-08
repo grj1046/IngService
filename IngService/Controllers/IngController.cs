@@ -110,13 +110,13 @@ namespace IngService.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> My(int pageIndex = 1, int pageSize = 30)
         {
-            List<Ing> ings = new List<Ing>();
+            List<MyIng> ings = new List<MyIng>();
             Uri uri = IngServices.BuildUri(ingType: IngType.My, tag: "", pageIndex: pageIndex, pageSize: pageSize);
             string strIngHtml = await IngServices.GetResponseMessage(uri);
             IngServices.CheckLogin(strIngHtml);
             //如果能够执行下述代码 证明身份已验证
-            ings = IngServices.GetIngs(strIngHtml);
-            return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
+            ings = IngServices.GetMyIngs(strIngHtml);
+            return this.Request.CreateResponse<IEnumerable<MyIng>>(HttpStatusCode.OK, ings);
         }
         /// <summary>
         /// 关注
