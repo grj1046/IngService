@@ -39,8 +39,10 @@ namespace IngService.Controllers
             var stream = await request.GetRequestStreamAsync();
 
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(strContent);
+            request.ContentLength = bytes.LongLength;
             stream.Write(bytes, 0, bytes.Length);
             stream.Flush();
+            stream.Dispose();
             var response = await request.GetResponseAsync() as HttpWebResponse;
             if (response.StatusCode == HttpStatusCode.OK)
             {

@@ -255,5 +255,67 @@ namespace IngService.Services
             }
             return userId;
         }
+
+        /// <summary>
+        /// 回复闪存
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<string> PostComment(CommentModel model)
+        {
+            //http://home.cnblogs.com/ing/645536/
+
+            //raw
+            //POST http://home.cnblogs.com/ajax/ing/PostComment HTTP/1.1
+            //Host: home.cnblogs.com
+            //Connection: keep-alive
+            //Content-Length: 106
+            //Accept: application/json, text/javascript, */*; q=0.01
+            //Origin: http://home.cnblogs.com
+            //X-Requested-With: XMLHttpRequest
+            //User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.111 Safari/537.36
+            //Content-Type: application/json; charset=UTF-8
+            //Referer: http://home.cnblogs.com/ing/
+            //Accept-Encoding: gzip, deflate
+            //Accept-Language: zh-CN,zh;q=0.8
+            //Cookie: __gads=ID=863c16356a733dc7:T=1425135364:S=ALNI_MZyHBcV9SSL3YV-RKDHLRMM7ah5RQ; .DottextCookie=A11F45B3E3169574D36E6D6470E55F21A3EFC7BE179B798E7E6C588974E6FF4D4B62A87775FCFDFFE58BFBA3A551F5C3CD316E62ADF950E30041F6D8D5604D10A56898A3541841A3CF211730BAEE119A6B55FF79ACEC576506C6C8E26C855F0C24005D4E9426C166F0B4A584; SERVERID=73ea7682c79ff5c414f1e6047449c5c1|1425817968|1425815813
+
+            //{"ContentId":645536,"ReplyTo":463726,"ParentCommentId":892566,"Content":"@枕头妹：沾了星星的光"}
+
+            var strContent = Newtonsoft.Json.JsonConvert.SerializeObject(model);
+
+            HttpWebRequest request = HttpWebRequest.CreateHttp("http://home.cnblogs.com/ajax/ing/PostComment");
+            request.Method = "POST";
+            request.ContentType = "application/json; charset=UTF-8";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.111 Safari/537.36";
+            request.CookieContainer = new CookieContainer();
+            foreach (string cookieName in HttpContext.Current.Request.Cookies)
+            {
+                HttpCookie c = HttpContext.Current.Request.Cookies[cookieName];
+                Cookie cookie = new Cookie(c.Name, c.Value);
+                cookie.Domain = ".cnblogs.com";
+                cookie.Path = c.Path;
+                cookie.Expires = c.Expires;
+                cookie.HttpOnly = c.HttpOnly;
+                request.CookieContainer.Add(cookie);
+            }
+            var stream = await request.GetRequestStreamAsync();
+
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(strContent);
+            request.ContentLength = bytes.LongLength;
+            stream.Write(bytes, 0, bytes.Length);
+            stream.Flush();
+            stream.Dispose();
+            var response = await request.GetResponseAsync() as HttpWebResponse;
+            string html = string.Empty;
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                using (StreamReader sr = new StreamReader(response.GetResponseStream()))
+                {
+                    html = sr.ReadToEnd();
+                }
+            }
+            return html;
+            throw new NotImplementedException();
+        }
     }
 }

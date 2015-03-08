@@ -135,5 +135,26 @@ namespace IngService.Controllers
             return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
 
+        [HttpPost]
+        public async Task<HttpResponseMessage> PostComment()
+        {
+            CommentModel model = this.Request.Content.ReadAsAsync<CommentModel>().Result;
+
+            if (string.IsNullOrEmpty(model.ContentId)
+                || string.IsNullOrEmpty(model.ReplyTo)
+                || string.IsNullOrEmpty(model.ParentCommentId)
+                || string.IsNullOrEmpty(model.Content))
+            {
+                var errorResponse = this.Request.CreateResponse(HttpStatusCode.BadRequest);
+                errorResponse.Content = new StringContent("发送信息不完整");
+                return errorResponse;
+            }
+
+            string html = await IngServices.PostComment(model);
+            var successResponse = this.Request.CreateResponse(HttpStatusCode.OK);
+            successResponse.Content = new StringContent(html);
+            return successResponse;
+        }
+
     }
 }
