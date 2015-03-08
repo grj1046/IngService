@@ -83,5 +83,25 @@ namespace IngService.Controllers
                 return challengeMessage;
             }
         }
+
+        [HttpGet]
+        public HttpResponseMessage Signout()
+        {
+            var responseMessage = this.Request.CreateResponse(HttpStatusCode.OK);
+            responseMessage.Content = new StringContent("注销成功");
+            List<CookieHeaderValue> cookies = new List<CookieHeaderValue>();
+            foreach (string cookieName in HttpContext.Current.Request.Cookies)
+            {
+                HttpCookie c = HttpContext.Current.Request.Cookies[cookieName];
+                CookieHeaderValue cookie = new CookieHeaderValue(c.Name, "");
+                cookie.Domain = c.Domain;// ".cnblogs.com";
+                cookie.Path = c.Path;
+                cookie.Expires = DateTime.Now.AddDays(-1);
+                cookie.HttpOnly = c.HttpOnly;
+                cookies.Add(cookie);
+            }
+            responseMessage.Headers.AddCookies(cookies);
+            return responseMessage;
+        }
     }
 }
