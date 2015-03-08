@@ -58,48 +58,81 @@ namespace IngService.Controllers
         /// 提到我
         /// </summary>
         /// <returns></returns>
+        /// http://home.cnblogs.com/ajax/ing/GetPagedIngList?IngListType=MentionedMe&PageIndex=1&PageSize=30&Tag=&_=1425799861982
         [HttpGet]
         public async Task<HttpResponseMessage> MentionedMe(int pageIndex = 1, int pageSize = 30)
         {
             List<Ing> ings = new List<Ing>();
-            Uri uri = IngServices.BuildUri(ingType: IngType.All, tag: "", pageIndex: pageIndex, pageSize: pageSize);
-
+            Uri uri = IngServices.BuildUri(ingType: IngType.MentionedMe, tag: "", pageIndex: pageIndex, pageSize: pageSize);
             string strIngHtml = await IngServices.GetResponseMessage(uri);
+            IngServices.CheckLogin(strIngHtml);
+            //如果能够执行下述代码 证明身份已验证
             ings = IngServices.GetIngs(strIngHtml);
-
             return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
         /// <summary>
         /// 新回应
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Ing> Reply()
+        /// http://home.cnblogs.com/ajax/ing/GetPagedIngList?IngListType=reply&PageIndex=1&PageSize=30&Tag=&_=1425800311558
+        [HttpGet]
+        public async Task<HttpResponseMessage> Reply(int pageIndex = 1, int pageSize = 30)
         {
-            throw new NotImplementedException();
+            List<Ing> ings = new List<Ing>();
+            Uri uri = IngServices.BuildUri(ingType: IngType.Reply, tag: "", pageIndex: pageIndex, pageSize: pageSize);
+            string strIngHtml = await IngServices.GetResponseMessage(uri);
+            IngServices.CheckLogin(strIngHtml);
+            //如果能够执行下述代码 证明身份已验证
+            ings = IngServices.GetIngs(strIngHtml);
+            return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
         /// <summary>
         /// 我回应
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Ing> MyReply()
+        /// http://home.cnblogs.com/ajax/ing/GetPagedIngList?IngListType=myreply&PageIndex=1&PageSize=30&Tag=&_=1425800338198
+        [HttpGet]
+        public async Task<HttpResponseMessage> MyReply(int pageIndex = 1, int pageSize = 30)
         {
-            throw new NotImplementedException();
+            List<Ing> ings = new List<Ing>();
+            Uri uri = IngServices.BuildUri(ingType: IngType.MyReply, tag: "", pageIndex: pageIndex, pageSize: pageSize);
+            string strIngHtml = await IngServices.GetResponseMessage(uri);
+            IngServices.CheckLogin(strIngHtml);
+            //如果能够执行下述代码 证明身份已验证
+            ings = IngServices.GetIngs(strIngHtml);
+            return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
         /// <summary>
         /// 我的
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Ing> My()
+        /// http://home.cnblogs.com/ajax/ing/GetPagedIngList?IngListType=my&PageIndex=1&PageSize=30&Tag=&_=1425800376510
+        [HttpGet]
+        public async Task<HttpResponseMessage> My(int pageIndex = 1, int pageSize = 30)
         {
-            throw new NotImplementedException();
+            List<Ing> ings = new List<Ing>();
+            Uri uri = IngServices.BuildUri(ingType: IngType.My, tag: "", pageIndex: pageIndex, pageSize: pageSize);
+            string strIngHtml = await IngServices.GetResponseMessage(uri);
+            IngServices.CheckLogin(strIngHtml);
+            //如果能够执行下述代码 证明身份已验证
+            ings = IngServices.GetIngs(strIngHtml);
+            return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
         /// <summary>
         /// 关注
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Ing> Recent()
+        /// http://home.cnblogs.com/ajax/ing/GetPagedIngList?IngListType=recent&PageIndex=1&PageSize=30&Tag=&_=1425800402549
+        [HttpGet]
+        public async Task<HttpResponseMessage> Recent(int pageIndex = 1, int pageSize = 30)
         {
-            throw new NotImplementedException();
+            List<Ing> ings = new List<Ing>();
+            Uri uri = IngServices.BuildUri(ingType: IngType.Recent, tag: "", pageIndex: pageIndex, pageSize: pageSize);
+            string strIngHtml = await IngServices.GetResponseMessage(uri);
+            IngServices.CheckLogin(strIngHtml);
+            //如果能够执行下述代码 证明身份已验证
+            ings = IngServices.GetIngs(strIngHtml);
+            return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
 
     }
