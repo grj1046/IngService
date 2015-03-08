@@ -1,10 +1,9 @@
-﻿using IngService.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace IngService.Services
+namespace IngService.Models
 {
     /// <summary>
     /// 我的闪存

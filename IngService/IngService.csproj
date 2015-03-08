@@ -94,8 +94,8 @@
     <Compile Include="Models\ReplyToMe.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\IngServices.cs" />
-    <Compile Include="Services\IngType.cs" />
-    <Compile Include="Services\MyIng.cs" />
+    <Compile Include="Models\IngType.cs" />
+    <Compile Include="Models\MyIng.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
