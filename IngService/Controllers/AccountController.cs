@@ -39,7 +39,7 @@ namespace IngService.Controllers
             var stream = await request.GetRequestStreamAsync();
 
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(strContent);
-            request.ContentLength = bytes.LongLength;
+            //request.ContentLength = bytes.LongLength;
             stream.Write(bytes, 0, bytes.Length);
             stream.Flush();
             stream.Dispose();
