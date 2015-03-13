@@ -58,7 +58,7 @@ namespace IngService.Services
                     strHtml = sr.ReadToEnd();
                 }
             }
-            return strHtml;
+            return HttpUtility.HtmlDecode(strHtml);
         }
 
         public static void CheckLogin(string html)
@@ -314,8 +314,7 @@ namespace IngService.Services
                     html = sr.ReadToEnd();
                 }
             }
-            return html;
-            throw new NotImplementedException();
+            return HttpUtility.HtmlDecode(html);
         }
     }
 }
