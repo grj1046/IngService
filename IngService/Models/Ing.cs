@@ -8,7 +8,7 @@ namespace IngService.Models
     public class Ing
     {
         public string Id { get; set; }
-        public string Body { get; set; }
+        public List<Segment> Body { get; set; }
         public string PublishTime { get; set; }
         /// <summary>
         /// 来自手机版 //img[@class='img_middle']

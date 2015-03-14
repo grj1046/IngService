@@ -26,6 +26,7 @@ namespace IngService.Models
     [JsonConverter(typeof(StringEnumConverter))]
     public enum SegmentType
     {
+        Tag,
         Text,
         Link
     }

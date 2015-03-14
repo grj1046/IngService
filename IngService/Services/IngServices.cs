@@ -136,7 +136,7 @@ namespace IngService.Services
 
                     HtmlNode ingBodyNode = childNode.SelectSingleNode("//span[@class='ing_body']");
                     string strIngId = ingBodyNode.Attributes["id"].Value.Remove(0, "ing_body_".Length);
-                    string strIngBody = ingBodyNode.InnerHtml;
+                    List<Segment> listIngBody = GetIngContent(ingBodyNode.InnerHtml);
                     string strIngTime = childNode.SelectSingleNode("//a[@class='ing_time']").Attributes["title"].Value;
                     strIngTime = strIngTime.Remove(0, "发布于".Length);
                     strIngTime = strIngTime.Remove(strIngTime.Length - "，点击进入详细页面".Length);
@@ -157,7 +157,7 @@ namespace IngService.Services
                     MyIng ing = new MyIng()
                     {
                         Id = strIngId,
-                        Body = strIngBody,
+                        Body = listIngBody,
                         PublishTime = strIngTime,
                         IsFromePhone = blIsFromePhone,
                         IsNewbie = blIsNewbie,
@@ -316,7 +316,7 @@ namespace IngService.Services
                     if (string.IsNullOrEmpty(first.Text))
                         listReplyContent.Remove(first);
                 }
-                
+
                 //replyTime
                 string strReplyTime = childNode.SelectSingleNode("//a[@class='ing_comment_time']").InnerHtml;
 
@@ -431,6 +431,55 @@ namespace IngService.Services
                 }
             }
             return userId;
+        }
+        /// <summary>
+        /// 获取闪存内容
+        /// </summary>
+        /// <returns></returns>
+        public static List<Segment> GetIngContent(string strHtml)
+        {
+            List<Segment> list = new List<Segment>();
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(strHtml);
+            HtmlNode currNode = doc.DocumentNode.FirstChild;
+            HtmlAttribute currNodeClass = currNode.Attributes["class"];
+            while (currNode != null)
+            {
+                if (currNode.NodeType == HtmlNodeType.Text)
+                {
+                    Segment segment = new Segment();
+                    segment.Type = SegmentType.Text;
+                    segment.Text = currNode.InnerHtml.Trim();
+                    if (!string.IsNullOrEmpty(segment.Text))
+                        list.Add(segment);
+                }
+                if (currNode.NodeType == HtmlNodeType.Element && currNode.Name == "a")
+                {
+                    string strHref = currNode.Attributes["href"].Value;
+                    string strText = currNode.InnerHtml.Trim();
+                    if (strHref.StartsWith("/ing/tag/"))
+                    {
+                        //标签
+                        Segment segment = new Segment();
+                        segment.Type = SegmentType.Tag;
+                        string strTmp = strText.Remove(0, 1);// [
+                        strTmp = strTmp.Remove(strTmp.Length - 1);// ]
+                        segment.Text = strTmp;
+                        list.Add(segment);
+                    }
+                    else
+                    {
+                        //链接
+                        SegmentUrl segmentUrl = new SegmentUrl();
+                        segmentUrl.Type = SegmentType.Link;
+                        segmentUrl.Text = strText;
+                        segmentUrl.Url = strHref;
+                        list.Add(segmentUrl);
+                    }
+                }
+                currNode = currNode.NextSibling;
+            }
+            return list;
         }
     }
 }
