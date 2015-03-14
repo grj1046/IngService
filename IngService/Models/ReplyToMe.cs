@@ -10,20 +10,20 @@ namespace IngService.Models
         /// <summary>
         /// 回复者id eg:289132
         /// </summary>
-        public string ReplyerId { get; set; }
+        public string ReplierId { get; set; }
         /// <summary>
         /// 回复者用户名 //a[@class="big_font blue"]
         /// eg:grj1046
         /// </summary>
-        public string ReplyerName { get; set; }
+        public string ReplierName { get; set; }
         /// <summary>
         /// 回复者昵称
         /// </summary>
-        public string ReplyerNickName { get; set; }
+        public string ReplierNickName { get; set; }
         /// <summary>
         /// 回复者头像uri //div[@class='feed_avatar']/a/img
         /// </summary>
-        public string ReplyerAvatarUri { get; set; }
+        public string ReplierAvatarUri { get; set; }
 
         /// <summary>
         /// 回复的闪存id //a[@class='comment-body-gray'].attribute["href"]

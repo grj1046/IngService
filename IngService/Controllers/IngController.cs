@@ -134,6 +134,25 @@ namespace IngService.Controllers
             ings = IngServices.GetIngs(strIngHtml);
             return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
+        /// <summary>
+        /// 获取单个闪存的评论，固定的只获取15条
+        /// </summary>
+        /// <param name="ingId"></param>
+        /// <param name="showCount"></param>
+        /// <returns></returns>
+        /// http://home.cnblogs.com/ajax/ing/SingleIngComments?ingId=646099&showCount=15&_=1425988069834
+        [HttpGet]
+        public async Task<HttpResponseMessage> SingleIngComments(string ingId, string showCount = "15")
+        {
+            List<IngComment> ings = new List<IngComment>();
+            Uri uri = IngServices.BuildCommentUri(ingId: ingId, showCount: showCount);
+            string strCommentHtml = await IngServices.GetResponseMessage(uri);
+            //该方法不需要权限认证
+            //IngServices.CheckLogin(strIngHtml);
+            //如果没有获取到评论，返回的为空数组
+            ings = IngServices.GetSingleIngComments(strCommentHtml, ingId);
+            return this.Request.CreateResponse<IEnumerable<IngComment>>(HttpStatusCode.OK, ings);
+        }
 
         [HttpPost]
         public async Task<HttpResponseMessage> PostComment()

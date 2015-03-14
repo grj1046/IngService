@@ -51,6 +51,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.2\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -92,7 +93,9 @@
     <Compile Include="Models\Account.cs" />
     <Compile Include="Models\Ing.cs" />
     <Compile Include="Models\CommentModel.cs" />
+    <Compile Include="Models\IngComment.cs" />
     <Compile Include="Models\ReplyToMe.cs" />
+    <Compile Include="Models\Segment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\IngServices.cs" />
     <Compile Include="Models\IngType.cs" />

@@ -24,11 +24,30 @@ namespace IngService.Services
             //(new Date).getTime() => 1420552726102 返回 1970 年 1 月 1 日至今的毫秒数。
             UriBuilder builder = new UriBuilder("http://home.cnblogs.com/ajax/ing/GetPagedIngList");
             string strIngListType = Enum.GetName(typeof(IngType), ingType);
-            DateTime dt = new DateTime(1970, 01, 01, 0, 0, 0);
-            long token = (DateTime.Now - dt).Ticks;
+            long token = GetTimeToken();
             string query = string.Format("IngListType={0}&PageIndex={1}&PageSize={2}&Tag={3}&_={4}", strIngListType, pageIndex, pageSize, tag, token);
             builder.Query = query;
             return builder.Uri;
+        }
+
+        public static Uri BuildCommentUri(string ingId, string showCount = "15")
+        {
+            //http://home.cnblogs.com/ajax/ing/SingleIngComments?ingId=646099&showCount=15&_=1425988069834
+            UriBuilder builder = new UriBuilder("http://home.cnblogs.com/ajax/ing/SingleIngComments");
+            long token = GetTimeToken();
+            string query = string.Format("ingId={0}&showCount={1}&_={2}", ingId, showCount, token);
+            builder.Query = query;
+            return builder.Uri;
+        }
+
+        /// <summary>
+        /// 获取自1970年1月1日到现在的毫秒数
+        /// </summary>
+        /// <returns></returns>
+        public static long GetTimeToken()
+        {
+            DateTime dt = new DateTime(1970, 01, 01, 0, 0, 0);
+            return (DateTime.Now - dt).Ticks;
         }
 
         public async static Task<string> GetResponseMessage(Uri uri)
@@ -203,10 +222,10 @@ namespace IngService.Services
 
                     ReplyToMe replyToMe = new ReplyToMe()
                     {
-                        ReplyerId = strReplyerId,
-                        ReplyerName = strReplyerName,
-                        ReplyerNickName = strReplyerNickName,
-                        ReplyerAvatarUri = strReplyerAvatarUri,
+                        ReplierId = strReplyerId,
+                        ReplierName = strReplyerName,
+                        ReplierNickName = strReplyerNickName,
+                        ReplierAvatarUri = strReplyerAvatarUri,
                         IngId = strIngId,
                         ReplyContentId = strReplyContentId,
                         ReplyContent = strReplyContent,
@@ -223,37 +242,99 @@ namespace IngService.Services
 
             return list;
         }
-        /// <summary>
-        /// 根据图像uri来获取用户id
-        /// </summary>
-        /// <param name="userName"></param>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        private static string GetUserIdByUri(string userName, string url)
+
+        public static List<IngComment> GetSingleIngComments(string strHtml, string ingId)
         {
-            //一共要处理三种url来获取userId
-            //http://pic.cnitblog.com/face/sample_face.gif id: the same as userName
-            //http://pic.cnitblog.com/face/577767/20150123103550.png id:577767
-            //http://pic.cnitblog.com/face/u1.png?id=202208179510 id: 1
-            string userId = string.Empty;
-            if (url.IndexOf("sample_face.gif") != -1)
+            if (string.IsNullOrEmpty(strHtml))
+                return new List<IngComment>();
+
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(strHtml);
+
+            HtmlNodeCollection nodes = doc.DocumentNode.SelectNodes("/div/ul/li");
+
+            List<IngComment> list = new List<IngComment>(nodes.Count);
+
+            foreach (HtmlNode htmlNode in nodes)
             {
-                userId = userName;
-            }
-            else
-            {
-                userId = url.Remove(0, "http://pic.cnitblog.com/face/".Length);
-                int uIndex = userId.IndexOf('u');
-                if (uIndex == -1)
+                HtmlDocument nodeDoc = new HtmlDocument();
+                //nodeDoc.LoadHtml(htmlNode.InnerText);
+                nodeDoc.LoadHtml(htmlNode.InnerHtml);
+                HtmlNode childNode = nodeDoc.DocumentNode;
+
+                //ingId
+                //commentId
+                string strCommentId = htmlNode.Attributes["id"].Value.Remove(0, "comment_".Length);
+                //replierId
+                string strReplierId = childNode.SelectSingleNode("//a[@href='#']").Attributes["onclick"].Value;
+                strReplierId = strReplierId.Remove(0, strReplierId.LastIndexOf(',') + 1);
+                strReplierId = strReplierId.Substring(0, strReplierId.IndexOf(')'));
+                //replierName, replierNickName
+                HtmlNode replierNode = childNode.SelectSingleNode("//a[@id='comment_author_" + strCommentId + "']");
+                string strReplierName = replierNode.Attributes["href"].Value.Remove(0, "/u/".Length);
+                strReplierName = strReplierName.Substring(0, strReplierName.Length - 1);
+                string strReplierNickName = replierNode.InnerHtml;
+
+                //看来获取评论只能使用while循环了
+                //当遇到这些时  停止 class="recycle"(优先) 或者 class="ing_comment_time"
+                //TODO:
+                //ReplyContent
+                List<Segment> listReplyContent = new List<Segment>();
+                //CanDelete
+                bool blCanDelete = false;
+                HtmlNode currNode = replierNode.NextSibling;
+                HtmlAttribute currNodeClass = currNode.Attributes["class"];
+                string strClassName = currNodeClass == null ? "" : currNodeClass.Value;
+                while (strClassName != "recycle" && strClassName != "ing_comment_time")
                 {
-                    userId = userId.Substring(0, userId.IndexOf('/'));
+                    if (currNode.NodeType == HtmlNodeType.Text)
+                    {
+                        Segment segment = new Segment();
+                        segment.Type = SegmentType.Text;
+                        segment.Text = currNode.InnerHtml.Trim();
+                        if (!string.IsNullOrEmpty(segment.Text))
+                            listReplyContent.Add(segment);
+                    }
+                    if (currNode.NodeType == HtmlNodeType.Element && currNode.Name == "a")
+                    {
+                        SegmentUrl segmentUrl = new SegmentUrl();
+                        segmentUrl.Type = SegmentType.Link;
+                        segmentUrl.Text = currNode.InnerHtml.Trim();
+                        segmentUrl.Url = currNode.Attributes["href"].Value;
+                        listReplyContent.Add(segmentUrl);
+                    }
+                    currNode = currNode.NextSibling;
+                    currNodeClass = currNode.Attributes["class"];
+                    strClassName = currNodeClass == null ? "" : currNodeClass.Value;
+                    blCanDelete = strClassName == "recycle";
                 }
-                else
+                //去除中文的冒号
+                Segment first = listReplyContent.FirstOrDefault();
+                if (first != null)
                 {
-                    userId = userId.Substring(1, userId.IndexOf(".png") - 1);
+                    first.Text = first.Text.Remove(0, 1);
+                    if (string.IsNullOrEmpty(first.Text))
+                        listReplyContent.Remove(first);
                 }
+                
+                //replyTime
+                string strReplyTime = childNode.SelectSingleNode("//a[@class='ing_comment_time']").InnerHtml;
+
+                IngComment comment = new IngComment()
+                {
+                    IngId = ingId,
+                    CommentId = strCommentId,
+                    ReplierId = strReplierId,
+                    ReplierName = strReplierName,
+                    ReplierNickName = strReplierNickName,
+                    ReplyContent = listReplyContent,
+                    ReplyTime = strReplyTime,
+                    CanDelete = blCanDelete
+                };
+                list.Add(comment);
             }
-            return userId;
+
+            return list;
         }
 
         /// <summary>
@@ -315,6 +396,41 @@ namespace IngService.Services
                 }
             }
             return HttpUtility.HtmlDecode(html);
+        }
+
+        /// <summary>
+        /// 根据图像uri来获取用户id
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        private static string GetUserIdByUri(string userName, string url)
+        {
+            //一共要处理三种url来获取userId
+            //http://pic.cnitblog.com/face/sample_face.gif id: the same as userName
+            //http://pic.cnitblog.com/face/577767/20150123103550.png id:577767
+            //http://pic.cnitblog.com/face/u1.png?id=202208179510 id: 1
+            string userId = string.Empty;
+            if (url.IndexOf("sample_face.gif") != -1)
+            {
+                userId = userName;
+            }
+            else
+            {
+                userId = url.Remove(0, "http://pic.cnitblog.com/face/".Length);
+                int uIndex = userId.IndexOf('u');
+                if (uIndex == -1)
+                {
+                    userId = userId.Substring(0, userId.IndexOf('/'));
+                }
+                else
+                {
+                    //.png?id= or .jpg?id=
+                    var extIndex = userId.IndexOf("?id=");
+                    userId = userId.Substring(1, extIndex - 5);
+                }
+            }
+            return userId;
         }
     }
 }
