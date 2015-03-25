@@ -149,6 +149,7 @@ namespace IngService.Services
                     string strUserName = childNode.SelectSingleNode("//a[@class='ing-author']").Attributes["href"].Value;
                     strUserName = strUserName.Remove(0, "/u/".Length);
                     strUserName = strUserName.Remove(strUserName.Length - 1);
+                    //需要考虑有用户名，但是未修改头像，则从头像无法获取到UserId
                     string strUserId = GetUserIdByUri(strUserName, strAvatarUri);
                     string strUserNickName = childNode.SelectSingleNode("//a[@class='ing-author']").InnerText;
                     //isPrivate 是否私有闪存
@@ -208,7 +209,14 @@ namespace IngService.Services
                     //ReplyerAvatarUri
                     string strReplyerAvatarUri = childNode.SelectSingleNode("//div[@class='feed_avatar']/a/img").Attributes["src"].Value;
                     //ReplyerId
-                    string strReplyerId = GetUserIdByUri(strReplyerName, strReplyerAvatarUri);
+                    //string strReplyerId = GetUserIdByUri(strReplyerName, strReplyerAvatarUri);
+                    string commentReplyText = childNode.SelectSingleNode("//a[@class='ing_reply ing-opt-space']").Attributes["onclick"].Value;
+                    //commentReply(650460, 902008, 721787, 902008); return false;
+                    string strTmp = commentReplyText.Remove(0, "commentReply(".Length);
+                    strTmp = strTmp.Substring(0, strTmp.Length - "); return false;".Length);
+                    string[] arr = strTmp.Split(',');
+                    string strReplyerId = arr[2];//第三个为用户id
+
                     //IngId
                     HtmlNode replyNode = childNode.SelectSingleNode("//a[@class='comment-body-gray']");
                     string strIngId = replyNode.Attributes["href"].Value.Remove(0, "/ing/".Length);
@@ -432,6 +440,7 @@ namespace IngService.Services
             }
             return userId;
         }
+
         /// <summary>
         /// 获取闪存内容
         /// </summary>
