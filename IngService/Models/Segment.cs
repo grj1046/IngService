@@ -9,6 +9,7 @@ using System.Web;
 namespace IngService.Models
 {
     [KnownType(typeof(SegmentUrl))]
+    [KnownType(typeof(SegmentUser))]
     /// <summary>
     /// 闪存内容片段或者回复内容片段
     /// </summary>
@@ -23,11 +24,17 @@ namespace IngService.Models
         public string Url { get; set; }
     }
 
+    public class SegmentUser : Segment
+    {
+        public string UserId { get; set; }
+    }
+
     [JsonConverter(typeof(StringEnumConverter))]
     public enum SegmentType
     {
+        Link,
         Tag,
         Text,
-        Link
+        User
     }
 }

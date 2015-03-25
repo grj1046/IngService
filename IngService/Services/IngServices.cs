@@ -467,13 +467,24 @@ namespace IngService.Services
                         segment.Text = strTmp;
                         list.Add(segment);
                     }
+                    else if (strHref.StartsWith("/u/"))
+                    {
+                        //被at的用户
+                        SegmentUser segmentUser = new SegmentUser();
+                        segmentUser.Type = SegmentType.User;
+                        string strTmp = strHref.Remove(0, "/u/".Length);// /u/
+                        strTmp = strTmp.Remove(strTmp.Length - 1);// /
+                        segmentUser.UserId = strTmp;
+                        segmentUser.Text = strText;
+                        list.Add(segmentUser);
+                    }
                     else
                     {
                         //链接
                         SegmentUrl segmentUrl = new SegmentUrl();
                         segmentUrl.Type = SegmentType.Link;
                         segmentUrl.Text = strText;
-                        segmentUrl.Url = strHref;
+                        segmentUrl.Url = HttpUtility.HtmlDecode(strHref);
                         list.Add(segmentUrl);
                     }
                 }
