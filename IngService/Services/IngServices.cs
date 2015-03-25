@@ -77,7 +77,7 @@ namespace IngService.Services
                     strHtml = sr.ReadToEnd();
                 }
             }
-            return HttpUtility.HtmlDecode(strHtml);
+            return strHtml;
         }
 
         public static void CheckLogin(string html)
@@ -214,9 +214,9 @@ namespace IngService.Services
                     string strIngId = replyNode.Attributes["href"].Value.Remove(0, "/ing/".Length);
                     strIngId = strIngId.Substring(0, strIngId.Length - 1);
                     //ReplyComment
-                    string strReplyContent = replyNode.InnerHtml;
+                    string strReplyContent = HttpUtility.HtmlDecode(replyNode.InnerHtml);
                     //ReplyMsg
-                    string strReplyMsg = childNode.SelectSingleNode("//span[@class='ing_body']").InnerHtml;
+                    string strReplyMsg = HttpUtility.HtmlDecode(childNode.SelectSingleNode("//span[@class='ing_body']").InnerHtml);
                     //ReplyTime
                     string strReplyTime = childNode.SelectSingleNode("//a[@class='ing_time']").Attributes["title"].Value;
 
@@ -291,7 +291,7 @@ namespace IngService.Services
                     {
                         Segment segment = new Segment();
                         segment.Type = SegmentType.Text;
-                        segment.Text = currNode.InnerHtml.Trim();
+                        segment.Text = HttpUtility.HtmlDecode(currNode.InnerHtml.Trim());
                         if (!string.IsNullOrEmpty(segment.Text))
                             listReplyContent.Add(segment);
                     }
@@ -299,7 +299,7 @@ namespace IngService.Services
                     {
                         SegmentUrl segmentUrl = new SegmentUrl();
                         segmentUrl.Type = SegmentType.Link;
-                        segmentUrl.Text = currNode.InnerHtml.Trim();
+                        segmentUrl.Text = HttpUtility.HtmlDecode(currNode.InnerHtml.Trim());
                         segmentUrl.Url = currNode.Attributes["href"].Value;
                         listReplyContent.Add(segmentUrl);
                     }
@@ -318,7 +318,7 @@ namespace IngService.Services
                 }
 
                 //replyTime
-                string strReplyTime = childNode.SelectSingleNode("//a[@class='ing_comment_time']").InnerHtml;
+                string strReplyTime = HttpUtility.HtmlDecode(childNode.SelectSingleNode("//a[@class='ing_comment_time']").InnerHtml);
 
                 IngComment comment = new IngComment()
                 {
@@ -449,14 +449,14 @@ namespace IngService.Services
                 {
                     Segment segment = new Segment();
                     segment.Type = SegmentType.Text;
-                    segment.Text = currNode.InnerHtml.Trim();
+                    segment.Text = HttpUtility.HtmlDecode(currNode.InnerHtml.Trim());
                     if (!string.IsNullOrEmpty(segment.Text))
                         list.Add(segment);
                 }
                 if (currNode.NodeType == HtmlNodeType.Element && currNode.Name == "a")
                 {
                     string strHref = currNode.Attributes["href"].Value;
-                    string strText = currNode.InnerHtml.Trim();
+                    string strText = HttpUtility.HtmlDecode(currNode.InnerHtml.Trim());
                     if (strHref.StartsWith("/ing/tag/"))
                     {
                         //标签
