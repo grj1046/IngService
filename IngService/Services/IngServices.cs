@@ -435,7 +435,15 @@ namespace IngService.Services
                 {
                     //.png?id= or .jpg?id=
                     var extIndex = userId.IndexOf("?id=");
-                    userId = userId.Substring(1, extIndex - 5);
+                    if (extIndex > -1)
+                    {
+                        userId = userId.Substring(1, extIndex - 5);
+                    }
+                    else if (userId.StartsWith("u") && userId.EndsWith(".png"))
+                    {
+                        userId = userId.Remove(0, 1);
+                        userId = userId.Substring(0, userId.Length - ".png".Length);
+                    }
                 }
             }
             return userId;
