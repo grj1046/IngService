@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Runtime.Serialization;
 
 namespace IngService.Models
 {
+    [KnownType(typeof(MyIng))]
     public class Ing
     {
         public string Id { get; set; }

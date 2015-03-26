@@ -32,7 +32,7 @@ namespace IngService.Controllers
             List<Ing> ings = new List<Ing>();
             Uri uri = IngServices.BuildUri(ingType: IngType.All, tag: "", pageIndex: pageIndex, pageSize: pageSize);
             string strIngHtml = await IngServices.GetResponseMessage(uri);
-            ings = IngServices.GetIngs(strIngHtml);
+            ings = IngServices.GetIngs(strIngHtml, IngType.All);
             return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
 
@@ -67,7 +67,7 @@ namespace IngService.Controllers
             string strIngHtml = await IngServices.GetResponseMessage(uri);
             IngServices.CheckLogin(strIngHtml);
             //如果能够执行下述代码 证明身份已验证
-            ings = IngServices.GetIngs(strIngHtml);
+            ings = IngServices.GetIngs(strIngHtml, IngType.MentionedMe);
             return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
         /// <summary>
@@ -83,7 +83,7 @@ namespace IngService.Controllers
             string strIngHtml = await IngServices.GetResponseMessage(uri);
             IngServices.CheckLogin(strIngHtml);
             //如果能够执行下述代码 证明身份已验证
-            ings = IngServices.GetIngs(strIngHtml);
+            ings = IngServices.GetIngs(strIngHtml, IngType.Reply);
             return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
         /// <summary>
@@ -99,7 +99,7 @@ namespace IngService.Controllers
             string strIngHtml = await IngServices.GetResponseMessage(uri);
             IngServices.CheckLogin(strIngHtml);
             //如果能够执行下述代码 证明身份已验证
-            ings = IngServices.GetIngs(strIngHtml);
+            ings = IngServices.GetIngs(strIngHtml, IngType.MyReply);
             return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
         /// <summary>
@@ -110,13 +110,13 @@ namespace IngService.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> My(int pageIndex = 1, int pageSize = 30)
         {
-            List<MyIng> ings = new List<MyIng>();
+            List<Ing> ings = new List<Ing>();
             Uri uri = IngServices.BuildUri(ingType: IngType.My, tag: "", pageIndex: pageIndex, pageSize: pageSize);
             string strIngHtml = await IngServices.GetResponseMessage(uri);
             IngServices.CheckLogin(strIngHtml);
             //如果能够执行下述代码 证明身份已验证
-            ings = IngServices.GetMyIngs(strIngHtml);
-            return this.Request.CreateResponse<IEnumerable<MyIng>>(HttpStatusCode.OK, ings);
+            ings = IngServices.GetIngs(strIngHtml, IngType.My);
+            return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
         /// <summary>
         /// 关注
@@ -131,7 +131,7 @@ namespace IngService.Controllers
             string strIngHtml = await IngServices.GetResponseMessage(uri);
             IngServices.CheckLogin(strIngHtml);
             //如果能够执行下述代码 证明身份已验证
-            ings = IngServices.GetIngs(strIngHtml);
+            ings = IngServices.GetIngs(strIngHtml, IngType.Recent);
             return this.Request.CreateResponse<IEnumerable<Ing>>(HttpStatusCode.OK, ings);
         }
         /// <summary>

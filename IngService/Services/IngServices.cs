@@ -91,40 +91,17 @@ namespace IngService.Services
             }
         }
 
-        public static List<Ing> GetIngs(string html)
-        {
-            List<Ing> ings = new List<Ing>();
-            List<MyIng> myIngs = GetMyIngs(html);
-            foreach (var myIng in myIngs)
-            {
-                Ing ing = new Ing()
-                {
-                    Id = myIng.Id,
-                    Body = myIng.Body,
-                    PublishTime = myIng.PublishTime,
-                    IsFromePhone = myIng.IsFromePhone,
-                    IsNewbie = myIng.IsNewbie,
-                    IsLucky = myIng.IsLucky,
-                    UserAvatarUri = myIng.UserAvatarUri,
-                    UserId = myIng.UserId,
-                    UserName = myIng.UserName,
-                    UserNickName = myIng.UserNickName
-                };
-                ings.Add(ing);
-            }
-            return ings;
-        }
-
-        public static List<MyIng> GetMyIngs(string html)
+        public static List<Ing> GetIngs(string html, IngType type)
         {
             if (string.IsNullOrEmpty(html))
             {
-                return new List<MyIng>();
+                return new List<Ing>();
             }
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
             var nodeIngs = doc.DocumentNode.SelectNodes("/li");
-            List<MyIng> ings = new List<MyIng>(nodeIngs.Count);
+
+            List<Ing> ings = new List<Ing>(nodeIngs.Count);
 
             foreach (HtmlNode node in nodeIngs)
             {
@@ -152,24 +129,44 @@ namespace IngService.Services
                     //需要考虑有用户名，但是未修改头像，则从头像无法获取到UserId
                     string strUserId = GetUserIdByUri(strUserName, strAvatarUri);
                     string strUserNickName = childNode.SelectSingleNode("//a[@class='ing-author']").InnerText;
-                    //isPrivate 是否私有闪存
-                    bool isPrivate = childNode.SelectSingleNode("//img[@title='私有闪存']") != null;
 
-                    MyIng ing = new MyIng()
+                    if (type == IngType.My)
                     {
-                        Id = strIngId,
-                        Body = listIngBody,
-                        PublishTime = strIngTime,
-                        IsFromePhone = blIsFromePhone,
-                        IsNewbie = blIsNewbie,
-                        IsPrivate = isPrivate,
-                        IsLucky = blIsLucky,
-                        UserAvatarUri = strAvatarUri,
-                        UserId = strUserId,
-                        UserName = strUserName,
-                        UserNickName = strUserNickName
-                    };
-                    ings.Add(ing);
+                        //isPrivate 是否私有闪存
+                        bool isPrivate = childNode.SelectSingleNode("//img[@title='私有闪存']") != null;
+                        MyIng ing = new MyIng()
+                        {
+                            Id = strIngId,
+                            Body = listIngBody,
+                            PublishTime = strIngTime,
+                            IsFromePhone = blIsFromePhone,
+                            IsNewbie = blIsNewbie,
+                            IsPrivate = isPrivate,
+                            IsLucky = blIsLucky,
+                            UserAvatarUri = strAvatarUri,
+                            UserId = strUserId,
+                            UserName = strUserName,
+                            UserNickName = strUserNickName
+                        };
+                        ings.Add(ing);
+                    }
+                    else
+                    {
+                        Ing ing = new Ing()
+                        {
+                            Id = strIngId,
+                            Body = listIngBody,
+                            PublishTime = strIngTime,
+                            IsFromePhone = blIsFromePhone,
+                            IsNewbie = blIsNewbie,
+                            IsLucky = blIsLucky,
+                            UserAvatarUri = strAvatarUri,
+                            UserId = strUserId,
+                            UserName = strUserName,
+                            UserNickName = strUserNickName
+                        };
+                        ings.Add(ing);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -285,7 +282,6 @@ namespace IngService.Services
 
                 //看来获取评论只能使用while循环了
                 //当遇到这些时  停止 class="recycle"(优先) 或者 class="ing_comment_time"
-                //TODO:
                 //ReplyContent
                 List<Segment> listReplyContent = new List<Segment>();
                 //CanDelete
@@ -324,7 +320,6 @@ namespace IngService.Services
                     if (string.IsNullOrEmpty(first.Text))
                         listReplyContent.Remove(first);
                 }
-
                 //replyTime
                 string strReplyTime = HttpUtility.HtmlDecode(childNode.SelectSingleNode("//a[@class='ing_comment_time']").InnerHtml);
 
@@ -341,7 +336,6 @@ namespace IngService.Services
                 };
                 list.Add(comment);
             }
-
             return list;
         }
 
