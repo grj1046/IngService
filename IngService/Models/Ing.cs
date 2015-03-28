@@ -37,6 +37,7 @@ namespace IngService.Models
         /// </summary>
         public string UserNickName { get; set; }
         public string UserAvatarUri { get; set; }
-        //public string UserHomeUri { get; set; }
+        public bool NeedGetComments { get; set; }
+        public List<IngComment> Comments { get; set; }
     }
 }

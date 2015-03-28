@@ -39,9 +39,9 @@ namespace IngService.Models
         /// </summary>
         public string ReplyTime { get; set; }
         /// <summary>
-        /// 当前账户是否你够删除该回复
-        /// 注：用户不能回复自己的评论，能删除则不能回复。
+        /// 是否是当前账户的评论
+        /// 注：用户不能回复自己的评论，能删除则不能回复，能回复则不能删除。
         /// </summary>
-        public bool CanDelete { get; set; }
+        public bool IsMyComment { get; set; }
     }
 }

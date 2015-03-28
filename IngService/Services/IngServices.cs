@@ -130,6 +130,14 @@ namespace IngService.Services
                     string strUserId = GetUserIdByUri(strUserName, strAvatarUri);
                     string strUserNickName = childNode.SelectSingleNode("//a[@class='ing-author']").InnerText;
 
+                    bool blNeedGetComments = childNode.SelectSingleNode("//script") != null;
+                    List<IngComment> listComments = new List<IngComment>();
+                    if (!blNeedGetComments)
+                    {
+                        HtmlNodeCollection commentNodes = childNode.SelectNodes("//ul[@id='comment_block_" + strIngId + "']/li");
+                        listComments = GetComments(commentNodes);
+                    }
+
                     if (type == IngType.My)
                     {
                         //isPrivate 是否私有闪存
@@ -146,7 +154,9 @@ namespace IngService.Services
                             UserAvatarUri = strAvatarUri,
                             UserId = strUserId,
                             UserName = strUserName,
-                            UserNickName = strUserNickName
+                            UserNickName = strUserNickName,
+                            NeedGetComments = blNeedGetComments,
+                            Comments = listComments
                         };
                         ings.Add(ing);
                     }
@@ -163,7 +173,9 @@ namespace IngService.Services
                             UserAvatarUri = strAvatarUri,
                             UserId = strUserId,
                             UserName = strUserName,
-                            UserNickName = strUserNickName
+                            UserNickName = strUserNickName,
+                            NeedGetComments = blNeedGetComments,
+                            Comments = listComments
                         };
                         ings.Add(ing);
                     }
@@ -174,6 +186,95 @@ namespace IngService.Services
                 }
             }
             return ings;
+        }
+
+        private static List<IngComment> GetComments(HtmlNodeCollection commentNodes)
+        {
+            List<IngComment> list = new List<IngComment>();
+            foreach (HtmlNode node in commentNodes)
+            {
+                //等于&nbsp;说明没有回复
+                if (node.InnerHtml == "&nbsp;")
+                    break;
+                HtmlDocument doc = new HtmlDocument();
+                doc.LoadHtml(node.InnerHtml);
+
+                HtmlNode childNode = doc.DocumentNode;
+                //commentReply(651392,903581,390916);return false;
+                //commentReply(ingId,commentId,replierId)
+                string commentReply = childNode.SelectSingleNode("//a[@href='#']").Attributes["onclick"].Value;
+                commentReply = commentReply.Remove(0, "commentReply(".Length);
+                commentReply = commentReply.Remove(commentReply.Length - ");return false;".Length);
+                string[] arr = commentReply.Split(',');
+                string strIngId = arr[0].Trim();
+                string strCommentId = arr[1].Trim();
+                string strReplierId = arr[2].Trim();
+
+                HtmlNode commentAutherNode = childNode.SelectSingleNode("//a[@id='comment_author_" + strCommentId + "']");
+                //ReplierNickName
+                string strReplierNickName = commentAutherNode.InnerText;
+                //ReplierName
+                string strReplierName = commentAutherNode.Attributes["href"].Value;
+                strReplierName = strReplierName.Remove(0, "/u/".Length);
+                strReplierName = strReplierName.Substring(0, strReplierName.Length - 1);
+
+                //当遇到这些时  停止 class="recycle"(优先) 或者 class="ing_comment_time"
+                //ReplyContent
+                List<Segment> listReplyContent = new List<Segment>();
+                //CanDelete
+                bool blCanDelete = false;
+                HtmlNode currNode = commentAutherNode.NextSibling;
+                HtmlAttribute currNodeClass = currNode.Attributes["class"];
+                string strClassName = currNodeClass == null ? "" : currNodeClass.Value;
+                while (strClassName != "recycle" && strClassName != "ing_comment_time")
+                {
+                    if (currNode.NodeType == HtmlNodeType.Text)
+                    {
+                        Segment segment = new Segment();
+                        segment.Type = SegmentType.Text;
+                        segment.Text = HttpUtility.HtmlDecode(currNode.InnerHtml.Trim());
+                        if (!string.IsNullOrEmpty(segment.Text))
+                            listReplyContent.Add(segment);
+                    }
+                    if (currNode.NodeType == HtmlNodeType.Element && currNode.Name == "a")
+                    {
+                        SegmentUrl segmentUrl = new SegmentUrl();
+                        segmentUrl.Type = SegmentType.Link;
+                        segmentUrl.Text = HttpUtility.HtmlDecode(currNode.InnerHtml.Trim());
+                        segmentUrl.Url = currNode.Attributes["href"].Value;
+                        listReplyContent.Add(segmentUrl);
+                    }
+                    currNode = currNode.NextSibling;
+                    currNodeClass = currNode.Attributes["class"];
+                    strClassName = currNodeClass == null ? "" : currNodeClass.Value;
+                    blCanDelete = strClassName == "recycle";
+                }
+                //去除中文的冒号
+                Segment first = listReplyContent.FirstOrDefault();
+                if (first != null)
+                {
+                    first.Text = first.Text.Remove(0, 1);
+                    if (string.IsNullOrEmpty(first.Text))
+                        listReplyContent.Remove(first);
+                }
+                //replyTime
+                string strReplyTime = HttpUtility.HtmlDecode(childNode.SelectSingleNode("//a[@class='ing_comment_time']").Attributes["title"].Value);
+                strReplyTime = strReplyTime.Remove(0, "回应于".Length);
+
+                IngComment comment = new IngComment()
+                {
+                    IngId = strIngId,
+                    CommentId = strCommentId,
+                    ReplierId = strReplierId,
+                    ReplierName = strReplierName,
+                    ReplierNickName = strReplierNickName,
+                    ReplyContent = listReplyContent,
+                    ReplyTime = strReplyTime,
+                    IsMyComment = blCanDelete
+                };
+                list.Add(comment);
+            }
+            return list;
         }
 
         public static List<ReplyToMe> GetReplyToMe(string strHtml)
@@ -248,6 +349,12 @@ namespace IngService.Services
             return list;
         }
 
+        /// <summary>
+        /// 解析回复闪存的内容
+        /// </summary>
+        /// <param name="strHtml"></param>
+        /// <param name="ingId"></param>
+        /// <returns></returns>
         public static List<IngComment> GetSingleIngComments(string strHtml, string ingId)
         {
             if (string.IsNullOrEmpty(strHtml))
@@ -332,7 +439,7 @@ namespace IngService.Services
                     ReplierNickName = strReplierNickName,
                     ReplyContent = listReplyContent,
                     ReplyTime = strReplyTime,
-                    CanDelete = blCanDelete
+                    IsMyComment = blCanDelete
                 };
                 list.Add(comment);
             }
